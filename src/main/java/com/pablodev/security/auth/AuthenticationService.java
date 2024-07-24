@@ -1,8 +1,6 @@
-// AuthenticationService.java
 package com.pablodev.security.auth;
 
 import com.pablodev.security.config.JwtService;
-import com.pablodev.security.user.Role;
 import com.pablodev.security.user.User;
 import com.pablodev.security.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,9 +28,8 @@ public class AuthenticationService {
                 .build();
         repository.save(user);
 
-        // Obtener el rol del usuario y generar el token usando el método con rol
-        String role = user.getRole().name(); // Obtener el rol como un String
-        String jwtToken = jwtService.generateTokenWithRole(user, role);
+        // Generar el token JWT
+        String jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .build();
@@ -47,8 +44,9 @@ public class AuthenticationService {
         );
         User user = repository.findByEmail(request.getEmail())
                 .orElseThrow();
-        String role = user.getRole().name(); // Obtener el rol como un String
-        String jwtToken = jwtService.generateTokenWithRole(user, role);
+
+        // Generar el token JWT
+        String jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .build();

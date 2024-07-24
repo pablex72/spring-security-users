@@ -1,6 +1,6 @@
-// JwtService.java
 package com.pablodev.security.config;
 
+import com.pablodev.security.user.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -36,31 +36,18 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(UserDetails userDetails){
-        return generateToken(new HashMap<>(), userDetails);
-    }
-
-    public String generateToken(
-            Map<String, Object> extraClaims,
-            UserDetails userDetails
-    ) {
+    public String generateToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", "ROLE_" + ((User) userDetails).getRole().name());
+        claims.put("firstname", ((User) userDetails).getFirstname());
+        claims.put("lastname", ((User) userDetails).getLastname());
         return Jwts.builder()
-                .setClaims(extraClaims)
+                .setClaims(claims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
-    }
-
-    public String generateTokenWithRole(UserDetails userDetails, String role) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("role", "ROLE_" + role); // Added "ROLE_" prefix to role
-        return generateToken(claims, userDetails);
-    }
-
-    public String extractRole(String token) {
-        return extractClaim(token, claims -> claims.get("role", String.class));
     }
 
     private Claims extractAllClaims(String token) {
@@ -77,7 +64,7 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails){
+    public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }

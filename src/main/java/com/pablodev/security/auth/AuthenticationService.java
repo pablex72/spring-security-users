@@ -1,3 +1,4 @@
+// AuthenticationService.java
 package com.pablodev.security.auth;
 
 import com.pablodev.security.config.JwtService;
@@ -20,17 +21,18 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
 
     public AuthenticationResponse register(RegisterRequest request) {
-
         User user = User.builder()
                 .firstname(request.getFirstname())
                 .lastname(request.getLastname())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.USER)
+                .role(request.getRole()) // Usar el rol proporcionado en la solicitud
                 .build();
         repository.save(user);
 
-        String jwtToken = jwtService.generateToken(user);
+        // Obtener el rol del usuario y generar el token usando el método con rol
+        String role = user.getRole().name(); // Obtener el rol como un String
+        String jwtToken = jwtService.generateTokenWithRole(user, role);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .build();
@@ -43,10 +45,10 @@ public class AuthenticationService {
                         request.getPassword()
                 )
         );
-
         User user = repository.findByEmail(request.getEmail())
                 .orElseThrow();
-        String jwtToken = jwtService.generateToken(user);
+        String role = user.getRole().name(); // Obtener el rol como un String
+        String jwtToken = jwtService.generateTokenWithRole(user, role);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .build();

@@ -1,3 +1,4 @@
+// SecurityConfiguration.java
 package com.pablodev.security.config;
 
 import jakarta.servlet.Filter;
@@ -28,22 +29,16 @@ public class SecurityConfiguration {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        .requestMatchers("/api/v1/admin").hasRole("ADMIN") // Checks for "ROLE_ADMIN"
+                        .requestMatchers("/api/v1/user").hasRole("USER")  // Checks for "ROLE_USER"
+                        .requestMatchers("/api/v1/public").permitAll()
+                        .requestMatchers("/api/v1/rolecheck").hasAnyRole("USER", "ADMIN") // Checks for "ROLE_USER" or "ROLE_ADMIN"
+                        .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-        //sesion managenment -> when we implmented the filter we want a once per request filter
-        // means every request should be authenticated this means that we should not store
-        // the authentication state or the session state -> the session should be stateless
-        // This will help us to ensure that each request should be authenticated ***
-
-        // jwt filter after provider: because I want to execute this filter before the filter
-        // called username password authentication filter, bcs when we implmented the
-        // jwt authentication filter, we check everything and set update the security context holder
-        // and after that we will be calling the username password authentication filter
         return http.build();
     }
 }
